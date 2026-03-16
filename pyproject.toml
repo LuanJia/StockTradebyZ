@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "stock-trade-by-z"
+version = "0.1.0"
+description = "Stock trading project"
+authors = ["Your Name <your.email@example.com>"]
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.12"
+numba = "0.64.0"
+numpy = "2.4.3"
+pandas = "<3.0.0"
+plotly = "6.5.0"
+protobuf = "<7"
+pyyaml = "6.0.3"
+streamlit = "1.55.0"
+tqdm = "4.67.3"
+tushare = "1.4.25"
+python-dotenv = "^1.0.0"
+kaleido = "1.2.0"
+google-genai = "^1.67.0"
+openai = "^2.28.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
