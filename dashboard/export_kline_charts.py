@@ -27,6 +27,21 @@ AgentTrader · 批量导出候选股票 K线图（日线 + 周线）
     libpango-1.0-0 \
     libcairo2 \
     libasound2
+
+# Ubuntu 24.04
+    sudo apt-get update && sudo apt-get install -y \
+    libnss3 \
+    libatk-bridge2.0-0t64 \
+    libcups2t64 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxfixes3 \
+    libxrandr2 \
+    libgbm1 \
+    libxkbcommon0 \
+    libpango-1.0-0 \
+    libcairo2 \
+    libasound2t64
 """
 
 from __future__ import annotations
@@ -36,6 +51,9 @@ import sys
 from pathlib import Path
 
 import pandas as pd
+
+import os
+os.environ["KALEIDO_DISABLE_X11"] = "1"  # 在无头环境中禁用 X11，强制使用软件渲染（适用于服务器或 WSL）
 
 # ── 路径设置 ──────────────────────────────────────────────────────────────────
 _ROOT = Path(__file__).parent.parent

@@ -136,10 +136,10 @@ def main() -> None:
             [PYTHON, str(ROOT / "dashboard" / "export_kline_charts.py")],
         )
 
-    # ── 步骤 4：Gemini 图表分析 ──────────────────────────────────────
+    # ── 步骤 4：AI 图表分析 ──────────────────────────────────────
     if start <= 4:
         _run(
-            "4/4  Gemini 图表分析（gemini_review）",
+            "4/4  AI 图表分析（openai_review）",
             [PYTHON, str(ROOT / "agent" / "openai_review.py")],
         )
 
