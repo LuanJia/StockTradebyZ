@@ -14,6 +14,7 @@ run_all.py
     python run_all.py --skip-fetch     # 跳过行情下载（已有最新数据时）
     python run_all.py --start-from 3   # 从第 3 步开始（跳过前两步）
 """
+
 from __future__ import annotations
 
 import argparse
@@ -34,7 +35,9 @@ def _run(step_name: str, cmd: list[str]) -> None:
     print(f"{'='*60}")
     result = subprocess.run(cmd, cwd=str(ROOT))
     if result.returncode != 0:
-        print(f"\n[ERROR] 步骤「{step_name}」返回非零退出码 {result.returncode}，流程已中止。")
+        print(
+            f"\n[ERROR] 步骤「{step_name}」返回非零退出码 {result.returncode}，流程已中止。"
+        )
         sys.exit(result.returncode)
 
 
@@ -77,14 +80,16 @@ def _print_recommendations() -> None:
     print(header)
     print("-" * len(header))
     for r in recommendations:
-        rank        = r.get("rank",        "?")
-        code        = r.get("code",        "?")
-        score       = r.get("total_score", "?")
+        rank = r.get("rank", "?")
+        code = r.get("code", "?")
+        score = r.get("total_score", "?")
         signal_type = r.get("signal_type", "")
-        verdict     = r.get("verdict",     "")
-        comment     = r.get("comment",     "")
-        score_str   = f"{score:.1f}" if isinstance(score, (int, float)) else str(score)
-        print(f"{rank:>4}  {code:>8}  {score_str:>6}  {signal_type:>10}  {verdict:>6}  {comment}")
+        verdict = r.get("verdict", "")
+        comment = r.get("comment", "")
+        score_str = f"{score:.1f}" if isinstance(score, (int, float)) else str(score)
+        print(
+            f"{rank:>4}  {code:>8}  {score_str:>6}  {signal_type:>10}  {verdict:>6}  {comment}"
+        )
 
     print(f"\n✅ 推荐购买 {len(recommendations)} 只股票（详见 {suggestion_file}）")
 
@@ -92,17 +97,21 @@ def _print_recommendations() -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description="AgentTrader 全流程自动运行脚本")
     parser.add_argument(
-        "--skip-fetch", action="store_true",
+        "--skip-fetch",
+        action="store_true",
         help="跳过步骤 1（行情下载），直接从初选开始",
     )
     parser.add_argument(
-        "--start-from", type=int, default=1, metavar="N",
+        "--start-from",
+        type=int,
+        default=1,
+        metavar="N",
         help="从第 N 步开始执行（1~4），跳过前面的步骤",
     )
     args = parser.parse_args()
 
     start = args.start_from
-    
+
     if args.skip_fetch and start == 1:
         start = 2
 
@@ -131,7 +140,7 @@ def main() -> None:
     if start <= 4:
         _run(
             "4/4  Gemini 图表分析（gemini_review）",
-            [PYTHON, str(ROOT / "agent" / "gemini_review.py")],
+            [PYTHON, str(ROOT / "agent" / "openai_review.py")],
         )
 
     # ── 步骤 5：打印推荐结果 ─────────────────────────────────────────
