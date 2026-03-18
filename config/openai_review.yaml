@@ -40,4 +40,4 @@ skip_existing: true
 suggest_min_score: 4.0
 
 # 多线程并发数（默认 5，根据 API 限流调整）
-max_workers: 5
+max_workers: 6

@@ -9,7 +9,7 @@ openai_review.py
     python agent/openai_review.py --config config/openai_review.yaml
 
 环境变量：
-    OPENAI_API_KEY  —— OpenAI API Key 或兼容接口的 Key（必填）
+    OPENAI_APIKEY  —— OpenAI API Key 或兼容接口的 Key（必填）
 
 输出：
     ./data/review/{pick_date}/{code}.json   每支股票的评分 JSON
@@ -22,6 +22,7 @@ import json
 import logging
 import os
 import sys
+import time
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
 
@@ -109,11 +110,11 @@ class OpenAIReviewer(BaseReviewer):
 
     def _init_client(self) -> OpenAI:
         """初始化 OpenAI 客户端"""
-        api_key = os.environ.get("OPENAI_API_KEY", "").strip()
+        api_key = os.environ.get("OPENAI_APIKEY", "").strip()
         if not api_key:
             raise APIKeyError(
-                "未找到环境变量 OPENAI_API_KEY，请先设置后重试。"
-                "例如: export OPENAI_API_KEY=your_api_key"
+                "未找到环境变量 OPENAI_APIKEY，请先设置后重试。"
+                "例如: export OPENAI_APIKEY=your_api_key"
             )
 
         client_kwargs: Dict[str, Any] = {"api_key": api_key}
@@ -151,48 +152,59 @@ class OpenAIReviewer(BaseReviewer):
         self, code: str, day_chart: Path, prompt: str, out_file: Path
     ) -> Tuple[str, Optional[Dict[str, Any]], str]:
         """单支股票分析实现"""
-        try:
-            image_base64 = self.image_to_base64(day_chart)
+        max_retries = 3
+        base_delay = 3
+        max_delay = 5
+        
+        for retry in range(max_retries):
+            try:
+                image_base64 = self.image_to_base64(day_chart)
 
-            user_content = [
-                {
-                    "type": "text",
-                    "text": f"股票代码：{code}\n\n以下是该股票的 **日线图**，请按照系统提示中的框架进行分析，并严格按照要求输出 JSON。",
-                },
-                {
-                    "type": "image_url",
-                    "image_url": {"url": image_base64, "detail": "high"},
-                },
-            ]
+                user_content = [
+                    {
+                        "type": "text",
+                        "text": f"股票代码：{code}\n\n以下是该股票的 **日线图**，请按照系统提示中的框架进行分析，并严格按照要求输出 JSON。",
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": image_base64, "detail": "high"},
+                    },
+                ]
 
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=[
-                    {"role": "system", "content": prompt},
-                    {"role": "user", "content": user_content},
-                ],
-                temperature=0.2,
-            )
+                response = self.client.chat.completions.create(
+                    model=self.model,
+                    messages=[
+                        {"role": "system", "content": prompt},
+                        {"role": "user", "content": user_content},
+                    ],
+                    temperature=1,
+                )
 
-            response_text = response.choices[0].message.content
-            if response_text is None:
-                return (code, None, "API 返回空响应")
+                response_text = response.choices[0].message.content
+                if response_text is None:
+                    return (code, None, "API 返回空响应")
 
-            result = self.extract_json(response_text)
-            result["code"] = code
+                result = self.extract_json(response_text)
+                result["code"] = code
 
-            # 保存结果
-            with open(out_file, "w", encoding="utf-8") as f:
-                json.dump(result, f, ensure_ascii=False, indent=2)
+                # 保存结果
+                with open(out_file, "w", encoding="utf-8") as f:
+                    json.dump(result, f, ensure_ascii=False, indent=2)
 
-            verdict = result.get("verdict", "?")
-            score = result.get("total_score", "?")
-            return (code, result, f"完成 — verdict={verdict}, score={score}")
+                verdict = result.get("verdict", "?")
+                score = result.get("total_score", "?")
+                return (code, result, f"完成 — verdict={verdict}, score={score}")
 
-        except APIKeyError:
-            raise
-        except Exception as e:
-            return (code, None, f"失败 — {type(e).__name__}: {e}")
+            except APIKeyError:
+                raise
+            except Exception as e:
+                if retry < max_retries - 1 and "429" in str(e):
+                    # 指数延迟，每次重试延迟时间翻倍
+                    delay = min(base_delay * (2 ** retry), max_delay)
+                    logger.warning("[%s] 遇到 429 错误，将在 %.1f 秒后重试 (尝试 %d/%d)", code, delay, retry + 2, max_retries)
+                    time.sleep(delay)
+                else:
+                    return (code, None, f"失败 — {type(e).__name__}: {e}")
 
 
 def main() -> None:

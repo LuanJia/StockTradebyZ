@@ -28,16 +28,16 @@ pip install openai
 
 ```bash
 # OpenAI 官方
-OPENAI_API_KEY=sk-your-openai-api-key
+OPENAI_APIKEY=sk-your-openai-api-key
 
 # DeepSeek
-OPENAI_API_KEY=sk-your-deepseek-api-key
+OPENAI_APIKEY=sk-your-deepseek-api-key
 
 # 阿里云通义千问
-OPENAI_API_KEY=sk-your-dashscope-api-key
+OPENAI_APIKEY=sk-your-dashscope-api-key
 
 # Moonshot (Kimi)
-OPENAI_API_KEY=sk-your-moonshot-api-key
+OPENAI_APIKEY=sk-your-moonshot-api-key
 ```
 
 ### 3. 配置文件
@@ -74,7 +74,7 @@ base_url: null  # 或注释掉
 
 环境变量：
 ```bash
-OPENAI_API_KEY=sk-...
+OPENAI_APIKEY=sk-...
 ```
 
 ### DeepSeek
@@ -86,7 +86,7 @@ base_url: https://api.deepseek.com/v1
 
 环境变量：
 ```bash
-OPENAI_API_KEY=sk-your-deepseek-key
+OPENAI_APIKEY=sk-your-deepseek-key
 ```
 
 ### 阿里云通义千问（Qwen）
@@ -98,7 +98,7 @@ base_url: https://dashscope.aliyuncs.com/compatible-mode/v1
 
 环境变量：
 ```bash
-OPENAI_API_KEY=sk-your-dashscope-key
+OPENAI_APIKEY=sk-your-dashscope-key
 ```
 
 ### Moonshot（Kimi）
@@ -110,7 +110,7 @@ base_url: https://api.moonshot.cn/v1
 
 环境变量：
 ```bash
-OPENAI_API_KEY=sk-your-moonshot-key
+OPENAI_APIKEY=sk-your-moonshot-key
 ```
 
 ### Ollama 本地部署
@@ -122,7 +122,7 @@ base_url: http://localhost:11434/v1
 
 环境变量：
 ```bash
-OPENAI_API_KEY=ollama  # Ollama 通常不需要 API Key
+OPENAI_APIKEY=ollama  # Ollama 通常不需要 API Key
 ```
 
 ## 运行方式
@@ -207,10 +207,10 @@ poetry add openai
 ### 问题：API Key 错误
 
 ```
-[ERROR] 未找到环境变量 OPENAI_API_KEY，请先设置后重试。
+[ERROR] 未找到环境变量 OPENAI_APIKEY，请先设置后重试。
 ```
 
-解决：在 `.env` 文件中设置 `OPENAI_API_KEY`
+解决：在 `.env` 文件中设置 `OPENAI_APIKEY`
 
 ### 问题：接口地址错误
 

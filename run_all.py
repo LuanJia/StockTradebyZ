@@ -140,7 +140,8 @@ def main() -> None:
     if start <= 4:
         _run(
             "4/4  AI 图表分析（openai_review）",
-            [PYTHON, str(ROOT / "agent" / "openai_review.py")],
+            # [PYTHON, str(ROOT / "agent" / "openai_review.py")],
+            [PYTHON, str(ROOT / "agent" / "gemini_review.py")],
         )
 
     # ── 步骤 5：打印推荐结果 ─────────────────────────────────────────
