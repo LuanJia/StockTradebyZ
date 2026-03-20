@@ -28,7 +28,10 @@ try:
     from google import genai
     from google.genai import types
 except ImportError:
-    print("[ERROR] 未安装 google-genai 包，请先安装：pip install google-genai", file=sys.stderr)
+    print(
+        "[ERROR] 未安装 google-genai 包，请先安装：pip install google-genai",
+        file=sys.stderr,
+    )
     sys.exit(1)
 
 import yaml
@@ -61,6 +64,8 @@ DEFAULT_CONFIG: Dict[str, Any] = {
     "prompt_path": "agent/prompt.md",
     # Gemini 模型参数
     "model": "gemini-3.1-pro-preview",
+    "location": "global",
+    "project": "gen-lang-client-0688895389",
     "request_delay": 5,
     "max_workers": 5,
     "skip_existing": False,
@@ -77,7 +82,7 @@ def _resolve_cfg_path(path_like: str | Path, base_dir: Path = _ROOT) -> Path:
 def load_config(config_path: Optional[Path] = None) -> Dict[str, Any]:
     """加载配置文件，合并默认值"""
     cfg_path = config_path or _DEFAULT_CONFIG_PATH
-    
+
     if cfg_path.exists():
         with open(cfg_path, "r", encoding="utf-8") as f:
             raw = yaml.safe_load(f) or {}
@@ -99,11 +104,11 @@ def load_config(config_path: Optional[Path] = None) -> Dict[str, Any]:
 
 class GeminiReviewer(BaseReviewer):
     """Google Gemini 股票图表分析器"""
-    
+
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
         self.client = self._init_client()
-        self.model = config.get("model", "gemini-3.1-pro-preview")
+        self.model = config.get("model", "gemini-1.5-pro")
         logger.info("GeminiReviewer 初始化完成，模型: %s", self.model)
 
     def _init_client(self) -> genai.Client:
@@ -115,7 +120,14 @@ class GeminiReviewer(BaseReviewer):
                 "例如: export GEMINI_API_KEY=your_api_key"
             )
 
-        return genai.Client(api_key=api_key)
+        project = self.config.get("project", "gen-lang-client-0688895389")
+        location = self.config.get("location", "us-central1")
+
+        return genai.Client(
+            vertexai=True,
+            project=project,
+            location=location,
+        )
 
     @staticmethod
     def image_to_part(path: Path) -> types.Part:
@@ -129,14 +141,14 @@ class GeminiReviewer(BaseReviewer):
             ".webp": "image/webp",
         }
         mime_type = mime_map.get(suffix, "image/jpeg")
-        
+
         try:
             data = path.read_bytes()
         except FileNotFoundError:
             raise FileNotFoundError(f"图片文件不存在: {path}")
         except IOError as e:
             raise IOError(f"读取图片文件失败 {path}: {e}")
-            
+
         return types.Part.from_bytes(data=data, mime_type=mime_type)
 
     def _review_single_stock(
@@ -194,7 +206,8 @@ def main() -> None:
         help="配置文件路径（默认 config/gemini_review.yaml）",
     )
     parser.add_argument(
-        "--verbose", "-v",
+        "--verbose",
+        "-v",
         action="store_true",
         help="启用详细日志输出",
     )

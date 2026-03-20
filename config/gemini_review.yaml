@@ -16,6 +16,12 @@ prompt_path: agent/prompt.md
 # Gemini 模型名称
 model: gemini-3.1-pro-preview
 
+# Gemini 项目（用于 Google Cloud Vertex AI）
+project: gen-lang-client-0688895389
+
+# Vertex AI 位置
+location: global
+
 # 相邻 API 调用间隔（秒）
 request_delay: 5
 
