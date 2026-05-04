@@ -165,6 +165,7 @@ def _get_kline_tushare(code: str, start: str, end: str) -> pd.DataFrame:
             end_date=end,
             freq="D",
             api=pro,
+            factors=["tor"],
         )
     except Exception as e:
         if _looks_like_ip_ban(e):
@@ -174,11 +175,14 @@ def _get_kline_tushare(code: str, start: str, end: str) -> pd.DataFrame:
     if df is None or df.empty:
         return pd.DataFrame()
 
-    df = df.rename(columns={"trade_date": "date", "vol": "volume"})[
-        ["date", "open", "close", "high", "low", "volume"]
-    ].copy()
+    df = df.rename(columns={"trade_date": "date", "vol": "volume"})
+    
+    if "turnover_rate" not in df.columns:
+        df["turnover_rate"] = 0.0
+        
+    df = df[["date", "open", "close", "high", "low", "volume", "turnover_rate"]].copy()
     df["date"] = pd.to_datetime(df["date"])
-    for c in ["open", "close", "high", "low", "volume"]:
+    for c in ["open", "close", "high", "low", "volume", "turnover_rate"]:
         df[c] = pd.to_numeric(df[c], errors="coerce")
     return df.sort_values("date").reset_index(drop=True)
 
@@ -245,7 +249,7 @@ def fetch_one(
             if new_df.empty:
                 logger.debug("%s 无数据，生成空表。", code)
                 new_df = pd.DataFrame(
-                    columns=["date", "open", "close", "high", "low", "volume"]
+                    columns=["date", "open", "close", "high", "low", "volume", "turnover_rate"]
                 )
             new_df = validate(new_df)
             new_df.to_csv(csv_path, index=False)  # 直接覆盖保存
