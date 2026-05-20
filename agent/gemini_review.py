@@ -112,22 +112,23 @@ class GeminiReviewer(BaseReviewer):
         logger.info("GeminiReviewer 初始化完成，模型: %s", self.model)
 
     def _init_client(self) -> genai.Client:
-        """初始化 Gemini 客户端"""
+        """初始化 Gemini 客户端（优先使用 ADC，其次使用 API Key）"""
         api_key = os.environ.get("GEMINI_API_KEY", "").strip()
-        if not api_key:
-            raise APIKeyError(
-                "未找到环境变量 GEMINI_API_KEY，请先设置后重试。"
-                "例如: export GEMINI_API_KEY=your_api_key"
-            )
-
         project = self.config.get("project", "gen-lang-client-0688895389")
-        location = self.config.get("location", "us-central1")
+        location = self.config.get("location", "global")
 
-        return genai.Client(
-            vertexai=True,
-            project=project,
-            location=location,
-        )
+        # 优先使用 ADC（Service Account），无 API Key 时自动切换
+        if not api_key:
+            adc_creds = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS", "").strip()
+            if adc_creds and not os.path.isfile(adc_creds):
+                raise APIKeyError(
+                    f"GOOGLE_APPLICATION_CREDENTIALS 指向的文件不存在: {adc_creds}"
+                )
+            logger.info("使用 ADC 认证（Service Account），项目: %s, 位置: %s", project, location)
+            return genai.Client(vertexai=True, project=project, location=location)
+        else:
+            logger.info("使用 API Key 认证")
+            return genai.Client(api_key=api_key)
 
     @staticmethod
     def image_to_part(path: Path) -> types.Part:
